@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Can Am Sales</title>
+  <link rel="icon" href="icons/icon32.png">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="phone.css">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="apple-touch-icon" href="icons/app-180.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-title" content="Can Am Sales">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+</head>
+<body class="locked">
+  <section class="login" id="login">
+    <div class="login-card">
+      <img src="logo.png" alt="Can Am Pizza" class="logo">
+      <h1>Lakewood sales</h1>
+      <p class="muted">Private page for Can Am Pizza Lakewood.</p>
+      <form id="loginForm">
+        <label>Email<input type="email" id="loginEmail" autocomplete="username" required></label>
+        <label>Password
+          <span class="pw-wrap">
+            <input type="password" id="loginPassword" autocomplete="current-password" required>
+            <button type="button" class="pw-show" id="loginShow" aria-label="Show password">Show</button>
+          </span>
+        </label>
+        <button class="btn" type="submit" id="loginBtn">Sign in</button>
+      </form>
+      <button class="btn" id="loginRetry" hidden>Try again</button>
+      <p class="login-msg" id="loginMsg" aria-live="polite"></p>
+      <p class="login-help">Forgot the password? It can be reset in Supabase (Authentication → Users).</p>
+    </div>
+  </section>
+  <div class="app-tip" id="appTip" hidden>
+    <div class="app-tip-msg" id="appTipMsg"></div>
+    <button class="btn" id="appTipInstall" hidden>Install</button>
+    <button class="btn ghost" id="appTipClose">Got it</button>
+  </div>
+
+  <header class="top">
+    <div class="brand">
+      <img src="logo.png" alt="Can Am Pizza" class="logo">
+      <div>
+        <div class="brand-title">Lakewood sales</div>
+        <div class="brand-sub" id="dateLine"></div>
+      </div>
+    </div>
+    <nav class="range" id="range" aria-label="Date range">
+      <button data-view="today">Today</button>
+      <button data-view="yesterday">Yesterday</button>
+      <button data-view="week">This week</button>
+      <button data-view="lastweek">Last week</button>
+      <button data-view="month">This month</button>
+      <button data-view="lastmonth">Last month</button>
+    </nav>
+    <div class="live">
+      <span class="live-dot" id="liveDot"></span>
+      <span id="liveText">Starting…</span>
+      <button class="icon-btn" id="refreshBtn" title="Refresh now" aria-label="Refresh now">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section id="alerts" class="alerts" aria-live="polite"></section>
+
+    <section class="hero">
+      <div class="hero-label" id="heroLabel">Total sales today</div>
+      <div class="hero-value" id="heroValue">—</div>
+      <div class="hero-meta">
+        <span id="heroOrders"></span>
+        <span id="heroDelta"></span>
+      </div>
+      <div class="hero-pay" id="heroPay"></div>
+      <button class="hero-more" id="heroDetail">See what sold, and when <span aria-hidden="true">→</span></button>
+    </section>
+
+    <section class="tiles" id="tiles"></section>
+    <p class="hint tiles-hint">Tap a box to see what sold there, the busiest times and promos.</p>
+
+    <section class="card">
+      <div class="card-head">
+        <h2 id="chartTitle">Last 14 days</h2>
+        <div class="legend" id="legend"></div>
+        <button class="link-btn" id="tableToggle">Show as table</button>
+      </div>
+      <div class="chart" id="chart"></div>
+      <div class="table-wrap" id="tableWrap" hidden></div>
+      <p class="hint">Tap a day to see its orders.</p>
+    </section>
+
+    <section class="card" id="newCustCard" hidden>
+      <div class="card-head"><h2>New customers</h2><span class="muted" id="newCustAge"></span></div>
+      <div class="nc-grid" id="newCust"></div>
+      <p class="hint">Each app's own count of first-time customers for the dates shown. DoorDash only reports whole
+        weeks and months, so its row shows its last full week (Monday–Sunday) and last full month. In-store isn't
+        counted, because Clover doesn't know who walk-in customers are.</p>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2 id="ordersTitle">Orders</h2>
+        <span class="muted" id="ordersCount"></span>
+      </div>
+      <ol class="orders" id="orders"></ol>
+      <button class="link-btn more" id="moreBtn" hidden>Show all</button>
+    </section>
+
+    <section class="card" id="connections">
+      <div class="card-head"><h2>Connections</h2><span class="muted">Checked every minute while Chrome is open</span></div>
+      <ul class="conns" id="conns"></ul>
+      <p class="muted"><span id="version"></span>
+        <button class="link-btn inline" id="reloadAddon" title="Loads the newest version of the add-on from its folder">Update add-on</button>
+        <button class="link-btn inline" id="phoneLogout" hidden>Sign out</button></p>
+    </section>
+
+    <footer class="foot">
+      Sales are before tax and tips. <b>In-store</b> is Clover card and cash payments only — app orders that also print in
+      Clover are left out so nothing is counted twice. <b>DoorDash</b>, <b>Uber Eats</b>, <b>Grubhub</b> and <b>Website &amp; app</b> come
+      straight from each company's own site. Cancelled orders are not counted, unless the app still paid you for them.
+      <b>You get</b> is what DoorDash, Uber Eats and Grubhub pay after their commission and fees, the promotions and ads you run there and
+      refunds (from each app's own payout report). The website &amp; app has no commission. Card fees aren't included.
+    </footer>
+  </main>
+
+  <dialog class="detail" id="detail" aria-labelledby="detailTitle">
+    <div class="d-top">
+      <div class="d-title"><span class="swatch" id="detailSwatch"></span><h2 id="detailTitle"></h2></div>
+      <button class="icon-btn" id="detailClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <nav class="range d-range" id="detailRange" aria-label="Date range">
+      <button data-view="today">Today</button>
+      <button data-view="yesterday">Yesterday</button>
+      <button data-view="week">This week</button>
+      <button data-view="lastweek">Last week</button>
+      <button data-view="month">This month</button>
+      <button data-view="lastmonth">Last month</button>
+    </nav>
+    <div class="d-when muted" id="detailWhen"></div>
+    <div id="detailBody"></div>
+  </dialog>
+
+  <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+  <script type="module" src="phone.js"></script>
+</body>
+</html>
