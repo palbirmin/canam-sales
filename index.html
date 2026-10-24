@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://xnnyrgptfxnephdkgopo.supabase.co; font-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Can Am Lakewood</title>
+  <link rel="icon" href="icons/icon32.png">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="phone.css">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="apple-touch-icon" href="icons/app-180.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-title" content="Can Am">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+  <script src="theme.js"></script>
+</head>
+<body class="locked">
+  <section class="login" id="login">
+    <div class="login-card">
+      <img src="logo.png" alt="Can Am Pizza" class="logo">
+      <h1>Can Am Lakewood</h1>
+      <p class="muted">Private page for Can Am Pizza Lakewood. Sign in with the login you were given.</p>
+      <form id="loginForm">
+        <label>Phone number or email<input type="text" id="loginEmail" autocomplete="username" autocapitalize="off" spellcheck="false" required></label>
+        <label>PIN or password
+          <span class="pw-wrap">
+            <input type="password" id="loginPassword" autocomplete="current-password" required>
+            <button type="button" class="pw-show" id="loginShow" aria-label="Show password">Show</button>
+          </span>
+        </label>
+        <button class="btn" type="submit" id="loginBtn">Sign in</button>
+      </form>
+      <button class="btn" id="loginRetry" hidden>Try again</button>
+      <p class="login-msg" id="loginMsg" aria-live="polite"></p>
+      <p class="login-help">Forgot your PIN? Ask the owner for a new one.</p>
+    </div>
+  </section>
+  <div class="app-tip" id="appTip" hidden>
+    <div class="app-tip-msg" id="appTipMsg"></div>
+    <button class="btn" id="appTipInstall" hidden>Install</button>
+    <button class="btn ghost" id="appTipClose">Not now</button>
+  </div>
+
+  <header class="top">
+    <div class="brand">
+      <img src="logo.png" alt="Can Am Pizza" class="logo">
+      <div>
+        <div class="brand-title" id="brandTitle">Lakewood sales</div>
+        <div class="brand-sub" id="dateLine"></div>
+      </div>
+    </div>
+    <nav class="views" id="views" aria-label="Show">
+      <button data-tab="sales" aria-pressed="true">Sales</button>
+      <button data-tab="dough" aria-pressed="false">Dough</button>
+    </nav>
+    <nav class="range sales-only" id="range" aria-label="Date range">
+      <button data-view="today">Today</button>
+      <button data-view="yesterday">Yesterday</button>
+      <button data-view="week">This week</button>
+      <button data-view="lastweek">Last week</button>
+      <button data-view="month">This month</button>
+      <button data-view="lastmonth">Last month</button>
+      <button data-view="september" hidden>September</button>
+    </nav>
+    <div class="live">
+      <span class="live-dot" id="liveDot"></span>
+      <span id="liveText">Starting…</span>
+      <button class="icon-btn" id="refreshBtn" title="Refresh now" aria-label="Refresh now">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="icon-btn theme-btn" id="themeBtn" type="button"></button>
+    </div>
+  </header>
+
+  <main>
+    <section id="alerts" class="alerts" aria-live="polite"></section>
+
+    <section class="hero sales-only">
+      <div class="hero-label" id="heroLabel">Total sales today</div>
+      <div class="hero-value" id="heroValue">—</div>
+      <div class="hero-meta">
+        <span id="heroOrders"></span>
+        <span id="heroDelta"></span>
+      </div>
+      <div class="hero-pay" id="heroPay"></div>
+      <div class="hero-actions">
+        <button class="hero-more" id="heroDetail">See what sold, and when <span aria-hidden="true">→</span></button>
+        <button class="hero-more" id="heroUpcoming" hidden>Expected orders <span class="count-pill" id="heroUpcomingCount" hidden></span> <span aria-hidden="true">↓</span></button>
+      </div>
+    </section>
+
+    <section class="tiles sales-only" id="tiles"></section>
+    <p class="hint tiles-hint sales-only">Tap a box to see what sold there, the busiest times and promos.</p>
+
+    <!-- Dough tab: dough only, no money. Everything is on the page, nothing folded away, in the order a
+         kitchen needs it: what to do now, what's left, the day's batches, orders scheduled ahead. -->
+    <section class="card dough-only dough-do" id="doughDoCard">
+      <div id="doughDo"></div>
+    </section>
+
+    <section class="card dough-only" id="doughNowCard" hidden>
+      <div class="card-head"><h2 id="doughNowTitle">Left right now</h2></div>
+      <div id="doughNow"></div>
+    </section>
+
+    <section class="card dough-only" id="doughDayCard">
+      <div class="card-head"><h2 id="doughDayTitle">Today's dough</h2></div>
+      <ol class="steps" id="doughSteps"></ol>
+    </section>
+
+    <!-- owner only: who entered which dough count (the database keeps this log) -->
+    <section class="card dough-only" id="doughWhoCard" hidden>
+      <div class="card-head"><h2 id="doughWhoTitle">Who entered what</h2></div>
+      <ol class="k-orders" id="doughWhoList"></ol>
+      <p class="hint">Every dough count someone entered or changed, newest first. The name is added by the database
+        from the login that saved it, so it can't be changed from the page.</p>
+    </section>
+
+    <section class="card dough-only" id="doughOrdersCard" hidden>
+      <div class="card-head"><h2>Orders scheduled ahead</h2><span class="muted" id="doughOrdersAge"></span></div>
+      <ol class="k-orders" id="doughOrders"></ol>
+    </section>
+
+    <section class="card dough-only" id="doughHowCard">
+      <div class="card-head"><h2>How the numbers are worked out</h2></div>
+      <div class="dough-how" id="doughHowBody"></div>
+    </section>
+
+    <section class="card dough-only" id="doughLogCard" hidden>
+      <div class="card-head"><h2 id="doughLogTitle">Counts entered</h2></div>
+      <div id="doughLog"></div>
+    </section>
+
+    <!-- owner only: employee logins that see this Dough page and nothing else -->
+    <section class="card dough-only" id="staffCard" hidden>
+      <div class="card-head"><h2>Employee logins</h2></div>
+      <p class="staff-about">Employees sign in at <a id="staffLink" target="_blank" rel="noopener"></a> with their phone number
+        and the 6-number PIN you give them. No text messages are sent. They see only this Dough page: the dough numbers and
+        the orders scheduled ahead. Never sales, prices, payouts or customer names. Each count they enter shows their name.</p>
+      <ul class="staff-list" id="staffList"></ul>
+      <form class="staff-add" id="staffForm" autocomplete="off">
+        <h3>Add an employee</h3>
+        <label>Their name<input type="text" id="staffName" required maxlength="40" autocomplete="off" placeholder="Maria"></label>
+        <label>Their phone number<input type="text" id="staffEmail" required autocomplete="off" spellcheck="false" autocapitalize="off" inputmode="tel" placeholder="253-555-0100"></label>
+        <label>A 6-number PIN for them
+          <span class="staff-pw"><input type="text" id="staffPassword" required inputmode="numeric" maxlength="6" autocomplete="off" spellcheck="false"><button class="btn ghost" type="button" id="staffMake">Make one up</button></span></label>
+        <button class="btn" type="submit">Add employee</button>
+      </form>
+      <p class="staff-note" id="staffNote" aria-live="polite"></p>
+    </section>
+
+    <footer class="foot dough-only" id="doughFoot" hidden><span id="doughWho"></span>
+      <button class="link-btn inline" id="doughSignOut" type="button">Sign out</button></footer>
+
+    <section class="card sales-only">
+      <div class="card-head">
+        <h2 id="chartTitle">Last 14 days</h2>
+        <div class="legend" id="legend"></div>
+        <button class="link-btn" id="tableToggle">Show as table</button>
+      </div>
+      <div class="chart" id="chart"></div>
+      <div class="table-wrap" id="tableWrap" hidden></div>
+      <p class="hint">Tap a day to see its orders.</p>
+    </section>
+
+    <section class="card sales-only" id="newCustCard" hidden>
+      <div class="card-head"><h2>New customers</h2><span class="muted" id="newCustAge"></span></div>
+      <div class="nc-grid" id="newCust"></div>
+      <p class="hint">Each app's own count of first-time customers for the dates shown. DoorDash only reports whole
+        weeks and months, so its row shows its last full week (Monday–Sunday) and last full month. In-store isn't
+        counted, because Clover doesn't know who walk-in customers are.</p>
+    </section>
+
+    <section class="card sales-only">
+      <div class="card-head">
+        <h2 id="ordersTitle">Orders</h2>
+        <span class="muted" id="ordersCount"></span>
+      </div>
+      <ol class="orders" id="orders"></ol>
+      <button class="link-btn more" id="moreBtn" hidden>Show all</button>
+    </section>
+
+    <section class="card sales-only" id="connections">
+      <div class="card-head"><h2>Connections</h2><span class="muted">Checked every minute while Chrome is open</span></div>
+      <ul class="conns" id="conns"></ul>
+      <p class="muted"><span id="version"></span>
+        <button class="link-btn inline" id="reloadAddon" title="Loads the newest version of the add-on from its folder">Update add-on</button>
+        <button class="link-btn inline" id="phoneLogout" hidden>Sign out</button></p>
+    </section>
+
+    <footer class="foot sales-only">
+      Sales are before tax and tips. <b>In-store</b> is Clover card and cash payments only — app orders that also print in
+      Clover are left out so nothing is counted twice. <b>DoorDash</b>, <b>Uber Eats</b>, <b>Grubhub</b> and <b>Website &amp; app</b> come
+      straight from each company's own site. Cancelled orders are not counted, unless the app still paid you for them.
+      <b>You get</b> is what DoorDash, Uber Eats and Grubhub pay after their commission and fees, the promotions and ads you run there and
+      refunds (from each app's own payout report). The website &amp; app has no commission. Card fees aren't included.
+    </footer>
+  </main>
+
+  <dialog class="detail" id="detail" aria-labelledby="detailTitle">
+    <div class="d-top">
+      <div class="d-title"><span class="swatch" id="detailSwatch"></span><h2 id="detailTitle"></h2></div>
+      <button class="icon-btn" id="detailClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <nav class="range d-range" id="detailRange" aria-label="Date range">
+      <button data-view="today">Today</button>
+      <button data-view="yesterday">Yesterday</button>
+      <button data-view="week">This week</button>
+      <button data-view="lastweek">Last week</button>
+      <button data-view="month">This month</button>
+      <button data-view="lastmonth">Last month</button>
+      <button data-view="september" hidden>September</button>
+    </nav>
+    <div class="d-when muted" id="detailWhen"></div>
+    <div id="detailBody"></div>
+  </dialog>
+
+  <dialog class="detail" id="upcomingPanel" aria-labelledby="upcomingTitle">
+    <div class="d-top">
+      <div class="d-title"><h2 id="upcomingTitle">Expected orders</h2></div>
+      <button class="icon-btn" id="upcomingClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="d-when muted" id="upcomingCount"></div>
+    <div class="panel-body">
+      <ol class="orders upcoming" id="upcoming"></ol>
+      <p class="hint">Orders customers scheduled ahead of time on the apps and your website, by when they're due.
+        Checked every 5 minutes.</p>
+    </div>
+  </dialog>
+
+  <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+  <script type="module" src="phone.js"></script>
+</body>
+</html>
