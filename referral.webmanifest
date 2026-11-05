@@ -1,0 +1,15 @@
+{
+  "name": "Can Am Referral Cards",
+  "short_name": "Referrals",
+  "id": "./referral.html",
+  "start_url": "./referral.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f9f9f7",
+  "theme_color": "#f9f9f7",
+  "icons": [
+    { "src": "icons/app-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/app-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
