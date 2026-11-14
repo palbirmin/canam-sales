@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://xnnyrgptfxnephdkgopo.supabase.co; font-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+  <title>Can Am Referral Cards</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="icons/icon32.png">
+  <link rel="apple-touch-icon" href="icons/app-180.png">
+  <link rel="manifest" href="referral.webmanifest">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="phone.css">
+  <link rel="stylesheet" href="referral.css">
+  <meta name="theme-color" content="#0b1524">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Referrals">
+  <script src="theme.js"></script>
+</head>
+<!-- Referral cards (version 1.14.0; counter tablet 1.16.0; modern look, required names, review and two-tap confirm 1.16.1;
+     people lookup as you type 1.20.0; Can Am navy, red and yellow look 1.21.0; staff drop cards in the box, the owner enters
+     them later with the date 1.23.0): one task per screen for the tablet at the counter
+     (Card turned in, Check a phone, Hotels) and the end-of-day jobs under More. phone/build.mjs puts the
+     sign-in screen (login.html) in place of the line below and adds the Content-Security-Policy. -->
+<body class="locked">
+  <section class="login" id="login">
+    <div class="login-card">
+      <img src="logo.png" alt="Can Am Pizza" class="logo">
+      <h1>Can Am Lakewood</h1>
+      <p class="muted">Private page for Can Am Pizza Lakewood. Sign in with the login you were given.</p>
+      <form id="loginForm">
+        <label>Phone number or email<input type="text" id="loginEmail" autocomplete="username" autocapitalize="off" spellcheck="false" required></label>
+        <label>PIN or password
+          <span class="pw-wrap">
+            <input type="password" id="loginPassword" autocomplete="current-password" required>
+            <button type="button" class="pw-show" id="loginShow" aria-label="Show password">Show</button>
+          </span>
+        </label>
+        <button class="btn" type="submit" id="loginBtn">Sign in</button>
+      </form>
+      <button class="btn" id="loginRetry" hidden>Try again</button>
+      <p class="login-msg" id="loginMsg" aria-live="polite"></p>
+      <p class="login-help">Forgot your PIN? Ask the owner for a new one.</p>
+    </div>
+  </section>
+  <div class="app-tip" id="appTip" hidden>
+    <div class="app-tip-msg" id="appTipMsg"></div>
+    <button class="btn" id="appTipInstall" hidden>Install</button>
+    <button class="btn ghost" id="appTipClose">Not now</button>
+  </div>
+
+  <header class="top">
+    <div class="brand">
+      <img src="logo.png" alt="Can Am Pizza" class="logo">
+      <div class="brand-title">Referral cards</div>
+    </div>
+    <button type="button" class="back" id="barBack" data-back hidden>Back</button>
+    <h1 class="bar-title" id="barTitle"></h1>
+    <a class="btn ghost" id="backLink" href="./">Sales &amp; dough</a>
+  </header>
+
+  <main class="ref">
+    <div class="alert warning" id="setupBanner" role="alert" hidden>
+      <span class="ico" aria-hidden="true">!</span>
+      <div class="msg"><b>Referral cards aren't fully set up in the database yet.</b> The owner needs to run
+        <code>phone/supabase_referral_tiers.sql</code> in Supabase (see <code>phone/REFERRAL_DEPLOY.md</code>).</div>
+    </div>
+    <p class="demo-strip" id="demoBanner" hidden>Demo: made-up people. Nothing is saved.</p>
+
+    <!-- Home: the two counter jobs, big -->
+    <section class="scr home" data-scr="home">
+      <div class="home-big">
+        <button type="button" class="big-btn turnin" data-go="turnin">
+          <span class="big-ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></svg></span>
+          <span class="big-txt"><span class="big-t">Card turned in</span>
+          <span class="big-s">Enter the cards from the box</span></span>
+        </button>
+        <!-- 1.23.0: employees only read what to do; the owner enters the cards from the box later -->
+        <div class="turnin-info" id="staffTurnin">
+          <span class="big-ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></svg></span>
+          <h2 class="ti-t">Card turned in?</h2>
+          <ol class="ti-steps">
+            <li><span class="ti-n" aria-hidden="true">1</span><span>Give 10% in Clover: <b>Referral: New Customer 10%</b></span></li>
+            <li><span class="ti-n" aria-hidden="true">2</span><span>Check the back has their first and last name and phone</span></li>
+            <li><span class="ti-n" aria-hidden="true">3</span><span>Put the card in the referral card box</span></li>
+          </ol>
+        </div>
+        <button type="button" class="big-btn check" data-go="check">
+          <span class="big-ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg></span>
+          <span class="big-txt"><span class="big-t">Check a phone</span>
+          <span class="big-s">Free breadsticks or pizza owed?</span></span>
+        </button>
+      </div>
+      <div class="home-small">
+        <button type="button" class="mid-btn" data-go="hotels"><span class="mid-ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 9h2a2 2 0 0 1 2 2v10"/><path d="M2.5 21h19M8 7h4M8 11h4M8 15h4"/></svg></span><span class="mid-t">Hotels</span><svg class="chev" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+        <button type="button" class="mid-btn" data-go="more"><span class="mid-ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.8"/></svg></span><span class="mid-t">More</span><svg class="chev" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+      <p class="home-foot"><span id="todayLine"></span><span id="whoLine"></span></p>
+    </section>
+
+    <!-- Card turned in -->
+    <section class="scr" data-scr="turnin" data-title="Card turned in" hidden>
+      <form class="form-grid" id="turnForm" autocomplete="off" novalidate>
+        <div class="c2 card-cell">
+          <label class="fld">Card number
+            <input id="tCard" class="num" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0001" enterkeyhint="next">
+            <span class="fmsg" id="tCardErr" aria-live="polite"></span>
+          </label>
+          <div class="know" id="tInfo" aria-live="polite"></div>
+        </div>
+        <label class="fld c2">Date turned in
+          <input id="tDay" type="date">
+          <span class="fmsg" id="tDayErr" aria-live="polite"></span>
+        </label>
+        <label class="fld c2">New customer's phone
+          <input id="tPhone" type="tel" inputmode="numeric" maxlength="16" placeholder="(253) 555-0100" enterkeyhint="next">
+          <span class="fmsg" id="tPhoneErr" aria-live="polite"></span>
+        </label>
+        <label class="fld c3">First name
+          <input id="tFirst" maxlength="40" autocapitalize="words" autocomplete="off" enterkeyhint="next">
+          <span class="fmsg" id="tFirstErr" aria-live="polite"></span>
+        </label>
+        <label class="fld c3">Last name
+          <input id="tLast" maxlength="40" autocapitalize="words" autocomplete="off" enterkeyhint="done">
+          <span class="fmsg" id="tLastErr" aria-live="polite"></span>
+        </label>
+        <div class="warns" id="tWarn" aria-live="polite"></div>
+        <label class="fld note" id="tNoteWrap" hidden>Note: why it's OK to go ahead
+          <input id="tNote" maxlength="300" placeholder="e.g. Owner said OK">
+        </label>
+        <div class="actionbar">
+          <p class="msg" id="tMsg" aria-live="polite"></p>
+          <button class="go" type="submit" id="tSave">Save</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Review before saving (1.16.1): only Confirm writes the row; Change goes back with everything still filled in -->
+    <section class="scr review" data-scr="review" data-title="Check before saving" data-noback hidden>
+      <div class="card rv">
+        <div class="rv-row"><span class="rv-k">Card</span><span class="rv-v rv-num" id="rvCard"></span></div>
+        <div class="rv-row"><span class="rv-k">Handed out by</span><span class="rv-v" id="rvFrom"></span></div>
+        <div class="rv-row"><span class="rv-k">Turned in</span><span class="rv-v" id="rvDay"></span></div>
+        <div class="rv-row"><span class="rv-k">New customer</span><span class="rv-v"><span class="rv-name" id="rvName"></span><span class="rv-phone" id="rvPhone"></span></span></div>
+      </div>
+      <div class="rv-warn" id="rvWarn"></div>
+      <div class="actionbar">
+        <p class="msg" id="rvMsg" aria-live="polite"></p>
+        <div class="row2">
+          <button type="button" class="go ghost" id="rvChange">Change</button>
+          <button type="button" class="go" id="rvConfirm">Confirm</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Saved: what to ring up -->
+    <section class="scr done" data-scr="done" hidden>
+      <div class="done-box" id="doneBox">
+        <p class="done-head"><span class="done-ico" aria-hidden="true"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="done-big" id="doneBig">Saved. 10% off this order.</span></p>
+        <p class="done-sub" id="doneSub"></p>
+        <p class="done-line" id="doneLine1"></p>
+        <p class="done-line pizza" id="doneLine2" hidden></p>
+      </div>
+      <button type="button" class="go next" id="doneNext">Next card</button>
+      <div class="row2">
+        <button type="button" class="go ghost" id="doneUndo">Undo</button>
+        <button type="button" class="go ghost" id="doneOk">Done</button>
+      </div>
+      <p class="msg" id="doneMsg" aria-live="polite"></p>
+    </section>
+
+    <!-- Check a phone -->
+    <section class="scr" data-scr="check" data-title="Check a phone" hidden>
+      <form class="look" id="checkForm" autocomplete="off" novalidate>
+        <label class="fld">Phone number or name
+          <span class="sugg-anchor look-anchor">
+            <input id="cPhone" class="lookbox" type="tel" inputmode="numeric" maxlength="16" placeholder="Phone number or name" enterkeyhint="search" autocomplete="off" spellcheck="false">
+            <span class="look-tools">
+              <button type="button" class="look-clear" id="cClear" aria-label="Clear the box" hidden><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
+              <span class="seg kbd-seg" id="cMode" role="group" aria-label="Keyboard">
+                <button type="button" data-mode="num" aria-pressed="true" aria-label="Number keyboard, for a phone number">123</button>
+                <button type="button" data-mode="name" aria-pressed="false" aria-label="Letter keyboard, for a name">ABC</button>
+              </span>
+            </span>
+          </span>
+        </label>
+        <button class="go" type="submit" id="cGo">Look up</button>
+      </form>
+      <div class="result" id="cResult" aria-live="polite"></div>
+    </section>
+
+    <!-- Hotels: cards turned in toward the next front-desk lunch -->
+    <section class="scr" data-scr="hotels" data-title="Hotels" hidden>
+      <p class="hint">Every 25 hotel cards turned in = lunch for that front desk: 2 large pizzas and breadsticks.</p>
+      <div class="hotels" id="hotelBlocks"></div>
+      <p class="msg" id="hotelMsg" aria-live="polite"></p>
+    </section>
+
+    <!-- More: the end-of-day jobs -->
+    <section class="scr" data-scr="more" data-title="More" hidden>
+      <div class="more-btns">
+        <button type="button" class="mid-btn" data-go="handout"><span class="mid-ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></svg></span><span class="mid-t">Log a hand-out</span><svg class="chev" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+        <button type="button" class="mid-btn" data-go="ownercom"><span class="mid-ico"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="3"/></svg></span><span class="mid-t">Owner.com list</span><svg class="chev" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+      <section class="card panel">
+        <div class="card-head"><h2>Today</h2><span class="muted" id="todaySub"></span></div>
+        <ul class="rows" id="todayList"></ul>
+        <p class="msg" id="todayMsg" aria-live="polite"></p>
+      </section>
+      <section class="panel who">
+        <p>Signed in as <b id="moreWho"></b></p>
+        <button type="button" class="go quiet" id="signOut">Sign out</button>
+        <p class="ver">Referral cards v1.23.0</p>
+      </section>
+    </section>
+
+    <!-- Log a hand-out: the paper hand-out log, one card at a time, or a batch -->
+    <section class="scr" data-scr="handout" data-title="Log a hand-out" hidden>
+      <form class="card panel stack" id="handForm" autocomplete="off" novalidate>
+        <div class="card-head"><h2>One card</h2><span class="ref-count" id="handCount"></span></div>
+        <div class="form-grid">
+          <label class="fld c2">Card number<input id="hCard" class="num" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0001"><span class="fmsg" id="hCardErr" aria-live="polite"></span></label>
+          <label class="fld c4">Phone<input id="hPhone" type="tel" inputmode="numeric" maxlength="16" placeholder="(253) 555-0100"><span class="fmsg" id="hPhoneErr" aria-live="polite"></span></label>
+          <label class="fld c3">First name<input id="hFirst" maxlength="40" autocapitalize="words" autocomplete="off"><span class="fmsg" id="hFirstErr" aria-live="polite"></span></label>
+          <label class="fld c3">Last name<input id="hLast" maxlength="40" autocapitalize="words" autocomplete="off"><span class="fmsg" id="hLastErr" aria-live="polite"></span></label>
+          <label class="fld c2">Date given<input id="hDate" type="date"></label>
+        </div>
+        <p class="ref-info" id="hInfo" aria-live="polite"></p>
+        <div class="actionbar">
+          <p class="msg" id="hMsg" aria-live="polite"></p>
+          <button class="go" type="submit" id="hSave">Save hand-out</button>
+        </div>
+      </form>
+
+      <details class="card panel" id="batchBox">
+        <summary><h2>Batch</h2><span class="muted">a range of cards for a hotel, or for one person</span></summary>
+        <form class="stack" id="batchForm" autocomplete="off" novalidate>
+          <div class="seg ref-kind" role="radiogroup" aria-label="Batch for">
+            <button type="button" data-kind="hotel" role="radio" aria-checked="true" aria-pressed="true">Hotel batch</button>
+            <button type="button" data-kind="person" role="radio" aria-checked="false" aria-pressed="false">Personal batch</button>
+          </div>
+          <div class="form-grid">
+            <label class="fld c6" id="bLabelWrap"><span id="bLabelText">Hotel</span><input id="bLabel" list="hotelList" maxlength="80" placeholder="TownePlace Suites"></label>
+            <label class="fld c3" id="bFirstWrap" hidden>First name<input id="bFirst" maxlength="40" autocapitalize="words" autocomplete="off"><span class="fmsg" id="bFirstErr" aria-live="polite"></span></label>
+            <label class="fld c3" id="bLastWrap" hidden>Last name<input id="bLast" maxlength="40" autocapitalize="words" autocomplete="off"><span class="fmsg" id="bLastErr" aria-live="polite"></span></label>
+            <label class="fld c2">From card #<input id="bFrom" class="num" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0001"></label>
+            <label class="fld c2">To card #<input id="bTo" class="num" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0050"></label>
+            <label class="fld c2">Date given<input id="bDate" type="date"></label>
+            <label class="fld c6"><span id="bPhoneText">Front desk phone</span><input id="bPhone" type="tel" inputmode="numeric" maxlength="16" placeholder="optional"></label>
+            <label class="fld c6" id="bNotesWrap">Note<input id="bNotes" maxlength="300" placeholder="optional, e.g. who took them"></label>
+          </div>
+          <datalist id="hotelList"><option value="TownePlace Suites"><option value="WoodSpring Suites"></datalist>
+          <p class="ref-info" id="bInfo" aria-live="polite"></p>
+          <button class="go" type="submit" id="bSave">Save batch</button>
+          <p class="msg" id="bMsg" aria-live="polite"></p>
+        </form>
+      </details>
+    </section>
+
+    <!-- Phones to add to Owner.com rewards -->
+    <section class="scr" data-scr="ownercom" data-title="Owner.com list" hidden>
+      <section class="card panel stack">
+        <div class="card-head"><h2>Add to Owner.com rewards</h2><span class="ref-count" id="signupCount"></span></div>
+        <p class="hint">Everyone who was handed a card and every new customer who used one, one line per phone, until it's ticked off.
+          <b>Copy all</b> copies the numbers, one per line. After adding them in Owner.com, tap <b>Mark all as added</b> (or <b>Added</b> on one row).</p>
+        <div class="row2">
+          <button class="go" type="button" id="signupCopy">Copy all</button>
+          <button class="go ghost" type="button" id="signupMarkAll">Mark all as added</button>
+        </div>
+        <p class="msg" id="signupMsg" aria-live="polite"></p>
+        <textarea id="signupText" class="ref-copybox" rows="4" readonly hidden aria-label="Phone numbers, one per line"></textarea>
+        <ul class="rows" id="signupList"></ul>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="referral.js"></script>
+</body>
+</html>
