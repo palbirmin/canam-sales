@@ -1,0 +1,103 @@
+/* Taxes tab (version 1.27.0, owner only, add-on and phone page). The Can Am navy, red and yellow of the
+   referral page and the Schedule tab: navy page and cards, red for the one button, yellow for "not confirmed"
+   and the focus ring, amber for "not available yet". Big plain numbers. Only this tab changes the page colors. */
+
+body:not(.tab-taxes) .taxes-only { display: none !important; }
+body.tab-taxes .sales-only, body.tab-taxes .dough-only, body.tab-taxes .finance-only, body.tab-taxes .schedule-only { display: none !important; }
+body.kitchen #taxTabBtn, body.kitchen .taxes-only { display: none !important; } /* employee logins: never */
+
+body.tab-taxes {
+  --t-page: #0b1524; --t-card: #13233a; --t-raised: #1b3050; --t-line: rgba(255, 255, 255, 0.10); --t-line-2: rgba(255, 255, 255, 0.20);
+  --t-ink: #f4f6fa; --t-muted: #9fb0c6; --t-red: #d8232a; --t-red-down: #b81c22;
+  --t-yellow: #ffc93c; --t-yellow-ink: #1a1400; --t-amber: #ffcb66; --t-amber-wash: #2e2410;
+  --page: var(--t-page); --surface: var(--t-card); --raised: var(--t-raised); --border: var(--t-line);
+  --ink: var(--t-ink); --ink-2: var(--t-muted); --muted: var(--t-muted); --hover: rgba(255, 255, 255, 0.06);
+  background: var(--t-page); color: var(--t-ink); color-scheme: dark;
+}
+body.tab-taxes > .top { background: color-mix(in srgb, var(--t-page) 94%, transparent); border-bottom-color: var(--t-line); }
+body.tab-taxes .views button[aria-pressed="true"] { background: var(--t-ink); color: var(--t-page); }
+body.tab-taxes main { max-width: 1240px; }
+
+.tx { display: grid; gap: 20px; font-feature-settings: "tnum" 1; font-size: 16px; }
+.tx h1 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.01em; }
+.tx h2 { margin: 0 0 12px; font-size: 20px; font-weight: 800; }
+.tx small { display: block; color: var(--t-muted); font-size: 13.5px; line-height: 1.35; margin-top: 2px; font-weight: 450; }
+.tx :focus-visible { outline: 2px solid var(--t-yellow); outline-offset: 2px; }
+
+.tx-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.tx-title p { margin: 4px 0 0; color: var(--t-muted); font-size: 16px; }
+.tx-controls { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.tx-pick { display: grid; gap: 4px; font-size: 14px; color: var(--t-muted); font-weight: 650; }
+.tx-pick select {
+  min-height: 52px; min-width: 210px; padding: 0 40px 0 16px; border-radius: 12px; border: 1px solid var(--t-line-2);
+  background: var(--t-card); color: var(--t-ink); font: inherit; font-size: 18px; font-weight: 750; cursor: pointer;
+}
+.tx-btn {
+  min-height: 52px; padding: 0 20px; border-radius: 12px; border: 1px solid var(--t-red); background: var(--t-red);
+  color: #fff; font: inherit; font-size: 17px; font-weight: 750; cursor: pointer;
+}
+.tx-btn:hover { background: var(--t-red-down); }
+
+.tx-lines { margin: 0; padding: 12px 16px; list-style: none; display: grid; gap: 4px; border-radius: 12px;
+  background: var(--t-card); border: 1px solid var(--t-line); font-size: 16px; font-weight: 650; }
+.tx-lines li::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--t-yellow); margin-right: 10px; vertical-align: 2px; }
+.tx-alert { margin: 0; padding: 12px 16px; border-radius: 12px; background: var(--t-amber-wash); color: var(--t-amber); border: 1px solid rgba(255, 203, 102, 0.35); }
+
+/* the three numbers for the state return */
+.tx-state { background: var(--t-card); border: 1px solid var(--t-line); border-top: 4px solid var(--t-red); border-radius: 16px; padding: 18px 20px 20px; }
+.tx-state-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.tx-num { display: grid; align-content: start; gap: 4px; padding: 14px 16px; border-radius: 12px; background: var(--t-raised); }
+.tx-num > span { font-size: 15px; font-weight: 700; color: var(--t-muted); }
+.tx-big { font-size: 34px; font-weight: 850; letter-spacing: -0.01em; line-height: 1.1; }
+.tx-num-main { box-shadow: inset 0 0 0 2px rgba(255, 201, 60, 0.55); }
+.tx-chip { justify-self: start; display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--t-yellow);
+  color: var(--t-yellow); font-size: 13px; font-weight: 750; white-space: nowrap; }
+.tx-na { color: var(--t-amber); font-weight: 750; }
+.tx-big.tx-na { font-size: 26px; }
+.tx-dash { color: var(--t-muted); font-weight: 650; }
+.tx-warn { color: var(--t-amber) !important; }
+
+/* by channel: a table on wide screens, one card per channel on phones */
+.tx-channels { background: var(--t-card); border: 1px solid var(--t-line); border-radius: 16px; padding: 18px 20px 20px; min-width: 0; }
+.tx-wide { overflow-x: auto; }
+.tx-table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.tx-table th, .tx-table td { text-align: left; vertical-align: top; padding: 12px 10px; border-bottom: 1px solid var(--t-line); }
+.tx-table thead th { font-size: 13.5px; font-weight: 750; color: var(--t-muted); text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 2px solid var(--t-line-2); }
+.tx-table td { min-width: 112px; max-width: 220px; }
+.tx-table td b, .tx-table th b { font-size: 18px; font-weight: 800; }
+.tx-table tbody th { min-width: 150px; }
+.tx-table tfoot th, .tx-table tfoot td { border-bottom: 0; border-top: 2px solid var(--t-line-2); }
+.tx-table .tx-chip { display: block; width: max-content; }
+.tx-narrow { display: none; gap: 12px; }
+.tx-card { background: var(--t-raised); border-radius: 12px; padding: 14px 16px; }
+.tx-card h3 { margin: 0 0 8px; font-size: 20px; font-weight: 800; }
+.tx-card h3 span { color: var(--t-muted); font-size: 14px; font-weight: 550; }
+.tx-card dl { margin: 0; display: grid; }
+.tx-card dl > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 12px; padding: 9px 0; border-top: 1px solid var(--t-line); }
+.tx-card dt { color: var(--t-muted); font-size: 15px; font-weight: 650; }
+.tx-card dd { margin: 0; text-align: right; }
+.tx-card dd b { font-size: 19px; font-weight: 800; }
+.tx-card dd .tx-chip { margin-left: auto; display: block; width: max-content; }
+.tx-card p { margin: 8px 0 0; font-size: 14px; }
+.tx-card-total { box-shadow: inset 0 0 0 2px var(--t-line-2); }
+
+.tx-how { color: var(--t-muted); font-size: 15px; }
+.tx-how h2 { color: var(--t-ink); font-size: 17px; }
+.tx-how ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.tx-how b { color: var(--t-ink); }
+
+@media (max-width: 900px) {
+  .tx-state-grid { grid-template-columns: 1fr; gap: 10px; }
+  .tx-wide { display: none; }
+  .tx-narrow { display: grid; }
+}
+@media (max-width: 640px) {
+  .views:has(#taxTabBtn:not([hidden])) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tx { gap: 16px; }
+  .tx h1 { font-size: 26px; }
+  .tx-controls, .tx-pick { width: 100%; }
+  .tx-pick select, .tx-btn { width: 100%; }
+  .tx-state, .tx-channels { padding: 14px 14px 16px; }
+  .tx-big { font-size: 30px; }
+  .tx-card { padding: 12px 14px; }
+}

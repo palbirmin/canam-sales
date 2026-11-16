@@ -1,0 +1,448 @@
+/* Referral cards page (version 1.14.0; counter tablet 1.16.0; modern look 1.16.1; Can Am look 1.21.0), on top of
+   dashboard.css and phone.css. This file is loaded by referral.html only, so nothing here reaches the other pages.
+   Built for a small tablet at the counter (a 7-8 inch Lenovo: about 1024x600 landscape, 600x1024 portrait), used
+   mid-rush: one task per screen, big targets (48 px and up, main actions 56 px and up).
+   1.21.0: one navy theme (no light mode on this page), Can Am red for the action about to be taken, yellow for one
+   meaning only (a reward owed), everything else quiet. One spacing scale (4, 8, 12, 16, 24, 32), three radii
+   (12 controls, 16 cards, 20 home tiles), no shadows, glows or gradients. The sign-in screen (login.html, phone.css)
+   is left as it is on every page. */
+
+/* ---------- tokens ---------- */
+body {
+  --r-page: #0b1524;      /* page, top bar, Save bar */
+  --r-card: #13233a;      /* cards, the suggestion list */
+  --r-raised: #1b3050;    /* secondary buttons, selected segment, pressed row */
+  --r-field: #0e1b2e;     /* input fills, bar tracks */
+  --r-line: rgba(255, 255, 255, 0.10);
+  --r-line-2: rgba(255, 255, 255, 0.20);
+  --r-ink: #f4f6fa;
+  --r-muted: #9fb0c6;
+  --r-red: #d8232a;       /* the action about to be taken (white text 5.0:1) */
+  --r-red-down: #b81c22;
+  --r-yellow: #ffc93c;    /* a reward owed, and nothing else (plus the focus ring) */
+  --r-yellow-ink: #1a1400;
+  --r-amber-wash: #2e2410; --r-amber-ink: #ffcb66;  /* warnings */
+  --r-ok: #5fd3a1;        /* the Saved confirmation */
+  --r-err: #ff8a80;       /* the check under a box, "Not saved" */
+  --r-side: 24px;         /* side padding of the content column */
+  --r-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+body:not(.locked) {
+  /* the dashboard's own colour names, pointed at the navy theme, for anything shared */
+  --page: var(--r-page); --surface: var(--r-card); --raised: var(--r-raised); --border: var(--r-line);
+  --ink: var(--r-ink); --ink-2: var(--r-muted); --muted: var(--r-muted); --down: var(--r-err);
+  min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
+  background: var(--r-page); color: var(--r-ink); color-scheme: dark; overflow-x: clip;
+}
+@media (max-width: 699px) { body { --r-side: 16px; } }
+
+html { scroll-padding: 72px 0 96px; } /* a focused box never ends up under the top bar or the Save bar */
+main.ref [hidden], .top [hidden] { display: none !important; }
+
+/* ---------- top bar: logo on Home and Saved; Back + the screen's title everywhere else ---------- */
+body:not(.locked) > .top {
+  position: sticky; top: 0; z-index: 5; display: flex; align-items: center; flex-wrap: nowrap; gap: 12px;
+  min-height: 56px; padding: 4px max(var(--r-side), calc((100% - 880px) / 2));
+  background: var(--r-page); border-bottom: 1px solid var(--r-line);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+.top .brand { gap: 12px; min-width: 0; }
+.top .logo { height: 40px; box-shadow: none; }
+.top .brand-title { font-size: 18px; font-weight: 700; line-height: 1.2; color: var(--r-ink); }
+.top .bar-title {
+  flex: 1; min-width: 0; margin: 0; font-size: 20px; font-weight: 800; line-height: 1.2; letter-spacing: -0.01em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--r-ink);
+}
+body.sub > .top .brand, body.sub > .top #backLink { display: none; }
+body:not(.sub) > .top .bar-title, body:not(.sub) > .top .back { display: none; }
+.top .btn {
+  flex: none; display: inline-grid; place-items: center; min-height: 48px; padding: 0 16px; border-radius: 12px;
+  background: transparent; border: 1px solid var(--r-line-2); color: var(--r-ink); box-shadow: none;
+  font-size: 18px; font-weight: 600; text-decoration: none; white-space: nowrap;
+}
+
+/* ---------- page ---------- */
+main.ref {
+  width: 100%; max-width: calc(880px + 2 * var(--r-side)); padding: 16px var(--r-side) 32px; gap: 16px;
+  font-size: 16px; line-height: 1.4; color: var(--r-ink);
+}
+main.ref h1 { margin: 0; font-size: 28px; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; }
+main.ref h2 { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; }
+main.ref .card { padding: 24px; border-radius: 16px; background: var(--r-card); border: 1px solid var(--r-line); box-shadow: none; }
+main.ref .card-head { display: flex; align-items: baseline; gap: 8px 12px; flex-wrap: wrap; }
+main.ref .muted, main.ref .ref-count { font-size: 14px; color: var(--r-muted); }
+main.ref .ref-count { margin-left: auto; font-variant-numeric: tabular-nums; }
+main.ref b { font-weight: 700; }
+
+.demo-strip {
+  margin: 0; min-height: 32px; display: flex; align-items: center;
+  font-size: 14px; line-height: 1.3; color: var(--r-muted);
+}
+
+/* warnings: one style everywhere (the setup note, the yellow and red notes on Card turned in, the review note) */
+main.ref .alert {
+  display: block; padding: 16px; border-radius: 12px; font-size: 16px; line-height: 1.4;
+  background: var(--r-amber-wash); border: 1px solid color-mix(in srgb, var(--r-amber-ink) 25%, transparent);
+  color: var(--r-amber-ink); box-shadow: none;
+}
+main.ref .alert .ico { display: none; }
+main.ref .alert .msg { margin: 0; font-size: 16px; font-weight: 400; color: inherit; }
+main.ref .alert b { color: inherit; }
+main.ref .alert code { font-size: 14px; }
+main.ref .alert .line { display: block; }
+main.ref .alert .line + .line { margin-top: 4px; }
+
+.scr { display: grid; gap: 16px; align-content: start; min-width: 0; }
+.scr:not([hidden]) { animation: r-in 120ms linear both; }
+@keyframes r-in { from { opacity: 0; } to { opacity: 1; } }
+.stack { display: grid; gap: 16px; }
+.hint { margin: 0; font-size: 16px; line-height: 1.45; color: var(--r-muted); }
+.hint b { color: var(--r-ink); }
+.loading, .empty { margin: 0; font-size: 16px; color: var(--r-muted); }
+
+/* ---------- buttons: primary (red), secondary (raised navy), quiet (outline) ---------- */
+.go {
+  display: inline-grid; place-items: center; width: 100%; min-height: 60px; padding: 8px 24px;
+  border: 1px solid transparent; border-radius: 12px; background: var(--r-red); color: #fff; box-shadow: none;
+  font: inherit; font-size: 18px; font-weight: 700; line-height: 1.2; text-align: center; cursor: pointer;
+  touch-action: manipulation; transition: background-color 120ms var(--r-ease);
+}
+.go:active { background: var(--r-red-down); }
+.go:disabled, .go:disabled:active {
+  background: var(--r-raised); color: var(--r-muted); border-color: transparent; opacity: 1; cursor: default;
+}
+.go.ghost { min-height: 56px; background: var(--r-raised); border-color: var(--r-line-2); color: var(--r-ink); font-weight: 600; }
+.go.ghost:active { background: var(--r-card); }
+.go.quiet, .go.undo, .go.cancel {
+  width: auto; min-width: 96px; min-height: 48px; padding: 0 16px; flex: none;
+  background: transparent; border-color: var(--r-line-2); color: var(--r-ink); font-weight: 600;
+}
+.go.quiet:active, .go.undo:active, .go.cancel:active { background: var(--r-raised); }
+/* two-tap buttons armed ("Tap again to confirm"): red, the action about to be taken */
+.go.sure, .go.sure:active { background: var(--r-red); border-color: transparent; color: #fff; }
+/* "Save anyway, with a note" inside the yellow note, as before */
+.go.warn-go { margin-top: 12px; min-height: 56px; background: var(--r-ink); color: var(--r-page); border-color: var(--r-ink); }
+.go.warn-go:active { background: var(--r-muted); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row2 .go { min-height: 60px; }
+.row-btns { display: flex; gap: 8px; flex: none; }
+
+.back {
+  flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  min-height: 48px; padding: 0 16px 0 8px; border-radius: 12px; cursor: pointer; touch-action: manipulation;
+  border: 1px solid var(--r-line-2); background: transparent; color: var(--r-ink); box-shadow: none;
+  font: inherit; font-size: 18px; font-weight: 600;
+}
+.back::before {
+  content: ''; width: 20px; height: 20px; background: currentColor;
+  -webkit-mask: var(--i-chev-l) center / contain no-repeat; mask: var(--i-chev-l) center / contain no-repeat;
+}
+.back:active, .top .btn:active { background: var(--r-raised); }
+
+/* focus and pressed: a 2 px yellow ring on everything that can be tapped */
+:is(main.ref, .top) :is(button, a, summary):is(:focus-visible, :active) { outline: 2px solid var(--r-yellow); outline-offset: 2px; }
+/* on a yellow card the ring is navy, or it wouldn't show */
+.reward :is(button, a):is(:focus-visible, :active) { outline-color: var(--r-page); }
+
+/* line icons used from CSS (same set as the inline ones in referral.html: stroke 2, round) */
+body {
+  --i-chev-l: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 5l-7 7 7 7'/%3E%3C/svg%3E");
+  --i-alert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M12 7.5v5.5M12 16.5h.01' stroke-width='2.4'/%3E%3C/svg%3E");
+}
+
+/* ---------- Home ---------- */
+body[data-scr="home"] main.ref { flex: 1; display: flex; flex-direction: column; padding-bottom: 16px; }
+.home { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 16px; }
+.home-big { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); grid-template-rows: 200px 200px; }
+.big-btn {
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 12px; min-height: 0;
+  padding: 24px; border: 0; border-radius: 20px; cursor: pointer; text-align: left; touch-action: manipulation;
+  font: inherit; box-shadow: none; transition: background-color 120ms var(--r-ease);
+}
+.big-btn.turnin { background: var(--r-red); color: #fff; }
+.big-btn.turnin:active { background: var(--r-red-down); }
+.big-btn.check { background: var(--r-yellow); color: var(--r-yellow-ink); }
+.big-btn.check:active { background: #f0b92a; }
+.big-ico { display: block; width: 32px; height: 32px; }
+.big-ico svg { display: block; width: 32px; height: 32px; }
+.big-txt { display: grid; gap: 4px; }
+.big-t { font-size: 32px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+.big-s { font-size: 16px; font-weight: 500; line-height: 1.35; }
+.home-small, .more-btns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.mid-btn {
+  display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 16px; text-align: left;
+  border-radius: 12px; border: 1px solid var(--r-line-2); background: var(--r-raised); color: var(--r-ink);
+  box-shadow: none; font: inherit; font-size: 18px; font-weight: 600; cursor: pointer; touch-action: manipulation;
+}
+.mid-btn:active { background: var(--r-card); }
+.mid-ico { flex: none; display: grid; place-items: center; width: 24px; height: 24px; }
+.mid-ico svg { width: 24px; height: 24px; }
+.mid-t { flex: 1; min-width: 0; }
+.mid-btn .chev { flex: none; width: 20px; height: 20px; color: var(--r-muted); }
+.home-foot {
+  margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 4px 16px; flex-wrap: wrap;
+  font-size: 14px; line-height: 20px; color: var(--r-muted); font-variant-numeric: tabular-nums;
+}
+/* 1.23.0: employees see what to do with a turned-in card, not a button (the owner enters the cards from the box).
+   The default is the employee view; body.owner (set before the page shows) swaps in the owner's tile. */
+body:not(.owner) .big-btn.turnin { display: none; }
+body.owner .turnin-info { display: none; }
+.turnin-info {
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 12px; min-height: 0;
+  padding: 24px; border-radius: 20px; background: var(--r-card); border: 2px solid var(--r-red); color: var(--r-ink);
+  text-align: left; cursor: default; user-select: none;
+}
+.turnin-info .big-ico { color: var(--r-red); }
+main.ref h2.ti-t { margin: 0; font-size: 28px; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; color: var(--r-ink); }
+.ti-steps { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: 18px; font-weight: 500; line-height: 1.35; color: var(--r-ink); }
+.ti-steps li { display: flex; gap: 12px; align-items: baseline; }
+.ti-n { flex: none; min-width: 14px; font-weight: 800; color: var(--r-red); font-variant-numeric: tabular-nums; }
+.ti-steps b { font-weight: 800; }
+body:not(.owner) .home-big { grid-template-rows: minmax(200px, auto) 200px; }
+@media (min-width: 700px) {
+  .home-big { flex: 1; min-height: 160px; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); }
+  body:not(.owner) .home-big { min-height: min-content; grid-template-rows: minmax(min-content, 1fr); }
+  .home-small, .more-btns { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---------- fields and forms ---------- */
+.fld { display: grid; gap: 8px; align-content: start; min-width: 0; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--r-muted); }
+.fld .opt { font-weight: 400; }
+main.ref input:not([type="checkbox"]), main.ref textarea {
+  width: 100%; min-height: 60px; padding: 0 16px; border-radius: 12px; border: 1.5px solid var(--r-line-2);
+  background: var(--r-field); color: var(--r-ink); box-shadow: none;
+  font: inherit; font-size: 22px; font-weight: 500; line-height: 1.2;
+  transition: border-color 120ms var(--r-ease);
+}
+main.ref input[type="tel"], main.ref input.num { font-weight: 600; font-variant-numeric: tabular-nums; }
+main.ref input.num { letter-spacing: 0.04em; }
+main.ref input::placeholder { color: var(--r-muted); opacity: 1; font-weight: 400; letter-spacing: 0; }
+main.ref :is(input, textarea):focus { outline: none; border-color: var(--r-yellow); box-shadow: inset 0 0 0 0.5px var(--r-yellow); }
+main.ref input[aria-invalid="true"] { border-color: var(--r-err); }
+main.ref input[aria-invalid="true"]:focus { border-color: var(--r-yellow); }
+/* the check under each box */
+.fmsg { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; font-weight: 600; line-height: 1.35; color: var(--r-err); }
+.fmsg::before {
+  content: ''; flex: none; width: 16px; height: 16px; margin-top: 1px; background: currentColor;
+  -webkit-mask: var(--i-alert) center / contain no-repeat; mask: var(--i-alert) center / contain no-repeat;
+}
+.fmsg:empty { display: none; }
+
+/* form rows: one column in portrait; six columns in landscape (c2 = a third, c3 = half, c4 = two thirds) */
+.form-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 700px) {
+  .form-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .form-grid > * { grid-column: 1 / -1; }
+  .form-grid > .c2 { grid-column: span 2; }
+  .form-grid > .c3 { grid-column: span 3; }
+  .form-grid > .c4 { grid-column: span 4; }
+}
+
+/* what the database knows about the card that was typed: under the card number box */
+.card-cell { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.know { font-size: 16px; line-height: 1.45; color: var(--r-ink); }
+.know:empty { display: none; }
+.know .line { display: block; }
+.know .line + .line { margin-top: 4px; }
+.know b { font-variant-numeric: tabular-nums; }
+.know .ok { font-weight: 700; }
+.know .bad, .know.bad { color: var(--r-err); font-weight: 600; }
+.know .soft { font-size: 14px; color: var(--r-muted); }
+.warns { display: grid; gap: 12px; }
+.warns:empty { display: none; }
+
+.msg { margin: 0; font-size: 16px; line-height: 1.4; }
+.msg:empty { display: none; }
+.msg.ok { color: var(--r-ok); font-weight: 600; }
+.msg.err { color: var(--r-err); font-weight: 600; }
+
+/* Save / Confirm in a bar stuck to the bottom of the screen, above the keyboard. While a suggestion list is
+   open the bar sits at the end of the form instead, so it never covers the list. */
+.actionbar {
+  position: sticky; bottom: 0; z-index: 4; display: grid; gap: 8px;
+  margin: 0; padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+  background: var(--r-page); border-top: 1px solid var(--r-line);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+.card .actionbar { margin: 0 -24px -24px; padding-left: 24px; padding-right: 24px; background: var(--r-card); border-radius: 0 0 16px 16px; }
+body.sugg-open .actionbar { position: static; }
+/* room to move a box up above the keyboard while its list is open */
+body.sugg-open main.ref { padding-bottom: 70vh; }
+
+/* two-way choices: one segmented control */
+.seg { display: flex; padding: 0; border: 1.5px solid var(--r-line-2); border-radius: 12px; overflow: hidden; background: transparent; }
+.seg button {
+  flex: 1; min-height: 48px; padding: 0 12px; margin: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none;
+  color: var(--r-muted); font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; touch-action: manipulation;
+}
+.seg button + button { border-left: 1px solid var(--r-line-2); }
+.seg button[aria-pressed="true"] { background: var(--r-raised); color: var(--r-ink); }
+.seg button:is(:focus-visible, :active) { outline-offset: -2px; }
+
+/* ---------- Check before saving ---------- */
+main.ref .card.rv { display: grid; padding-top: 8px; padding-bottom: 8px; }
+.rv-row { display: grid; grid-template-columns: 160px minmax(0, 1fr); align-items: baseline; gap: 4px 16px; padding: 12px 0; border-top: 1px solid var(--r-line); }
+.rv-row:first-child { border-top: 0; }
+.rv-k { font-size: 14px; font-weight: 600; color: var(--r-muted); }
+.rv-v { min-width: 0; font-size: 20px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.rv-num { font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+.rv-name { display: block; font-weight: 700; }
+.rv-phone { display: block; margin-top: 4px; font-size: 16px; font-weight: 500; color: var(--r-muted); font-variant-numeric: tabular-nums; }
+.rv-warn:empty { display: none; }
+.rv-note { margin-top: 8px; }
+
+/* ---------- Saved ---------- */
+.done-box { display: grid; gap: 12px; justify-items: start; padding: 24px; border-radius: 16px; background: var(--r-card); border: 1px solid var(--r-line); }
+.done-head { display: flex; align-items: center; gap: 12px; margin: 0; }
+.done-ico { flex: none; display: block; width: 32px; height: 32px; color: var(--r-ok); }
+.done-ico svg { display: block; width: 32px; height: 32px; }
+.done-box.undone .done-ico { display: none; }
+.done-big { font-size: 28px; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; }
+.done-sub { margin: 0; font-size: 16px; color: var(--r-muted); font-variant-numeric: tabular-nums; }
+.done-line { margin: 0; font-size: 18px; line-height: 1.35; }
+.done-line.pizza { font-weight: 700; }
+
+/* ---------- Check a phone ---------- */
+.look { display: grid; gap: 12px; }
+@media (min-width: 700px) {
+  .look { grid-template-columns: minmax(0, 1fr) 200px; align-items: start; }
+  .look > .go { margin-top: 28px; } /* level with the box: label line 20 + gap 8 */
+}
+main.ref input.lookbox { padding-right: 172px; }
+.look-tools { position: absolute; top: 0; right: 8px; height: 60px; display: flex; align-items: center; gap: 4px; }
+.look-clear {
+  display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 12px;
+  background: transparent; color: var(--r-muted); cursor: pointer;
+}
+.look-clear svg { width: 22px; height: 22px; }
+.look-clear:active { background: var(--r-raised); }
+.kbd-seg { border-width: 1px; }
+.kbd-seg button { flex: none; min-height: 44px; min-width: 52px; padding: 0 8px; letter-spacing: 0.02em; }
+
+.result { display: grid; gap: 16px; margin-top: 8px; } /* 24 under the box row */
+.result:empty { display: none; }
+.who-box { display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; }
+.who-name { font-size: 28px; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.who-phone { font-size: 18px; color: var(--r-muted); font-variant-numeric: tabular-nums; }
+.banner { font-size: 18px; line-height: 1.35; }
+.banner.none { padding: 16px 24px; border-radius: 16px; background: var(--r-card); border: 1px solid var(--r-line); color: var(--r-muted); font-weight: 600; }
+.banner.yes { font-size: 20px; font-weight: 800; color: var(--r-ink); } /* the heading over the yellow cards */
+
+/* a reward owed: the one loud thing on the page */
+.give-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.give-row {
+  display: flex; align-items: center; gap: 12px 16px; min-height: 64px; padding: 12px 16px;
+  border-radius: 16px; background: var(--r-card); border: 1px solid var(--r-line);
+}
+.give-what { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.give-what b { font-size: 18px; font-weight: 700; }
+.give-what span { font-size: 14px; color: var(--r-muted); }
+.reward { background: var(--r-yellow); border-color: transparent; color: var(--r-yellow-ink); }
+.give-row.reward { min-height: 88px; padding: 16px 16px 16px 24px; }
+.reward .give-what b { font-size: 24px; font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; }
+.reward .give-what span { font-size: 16px; color: inherit; }
+.reward .go { width: auto; min-width: 150px; min-height: 56px; flex: none; background: var(--r-page); color: #fff; border-color: transparent; }
+.reward .go:active { background: #000; }
+.reward .go.sure { background: var(--r-red); min-width: 240px; }
+.reward .go.cancel { min-height: 56px; background: transparent; color: var(--r-yellow-ink); border-color: color-mix(in srgb, var(--r-yellow-ink) 45%, transparent); }
+.give-row:has(.sure), .lunch:has(.sure) { flex-wrap: wrap; }
+/* progress to the next medium pizza */
+.progress { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; }
+.progress p { margin: 0; font-size: 16px; }
+.dots { display: flex; align-items: center; gap: 8px; }
+.dots span { flex: none; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--r-line-2); }
+.dots span.on { background: var(--r-yellow); border-color: var(--r-yellow); }
+main.ref h2.sec { margin: 8px 0 -8px; font-size: 14px; font-weight: 600; color: var(--r-muted); letter-spacing: 0; }
+
+/* ---------- lists (history, today, hotel lunches, Owner.com) ---------- */
+.rows { list-style: none; margin: 0; padding: 0; display: grid; }
+.rows li { display: flex; gap: 12px; align-items: center; min-height: 64px; padding: 8px 0; border-top: 1px solid var(--r-line); font-size: 16px; }
+.rows li:first-child { border-top: 0; }
+.rows .main { flex: 1; min-width: 0; font-variant-numeric: tabular-nums; }
+.rows .sub { display: block; font-size: 14px; color: var(--r-muted); }
+.rows .tag {
+  flex: none; min-width: 88px; margin: 0; padding: 0; text-align: left; letter-spacing: 0;
+  font-size: 14px; font-weight: 600; color: var(--r-muted); background: none; border: 0; border-radius: 0;
+}
+.rows li.empty { color: var(--r-muted); }
+.rows li:has(.row-btns) { flex-wrap: wrap; }
+
+/* ---------- Hotels ---------- */
+.hotels { display: grid; gap: 16px; }
+.hotel { display: grid; gap: 12px; }
+.hotel-big { margin: 0; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 16px; color: var(--r-muted); }
+.hotel-big b { font-size: 40px; font-weight: 800; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--r-ink); }
+.bar { height: 8px; border-radius: 4px; overflow: hidden; background: var(--r-field); }
+.bar span { display: block; height: 100%; min-width: 8px; border-radius: 4px; background: var(--r-yellow); }
+.bar span[style="width:0%"] { min-width: 0; }
+.hotel-sub { margin: 0; font-size: 14px; color: var(--r-muted); font-variant-numeric: tabular-nums; }
+.lunch { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; padding: 16px 16px 16px 24px; border-radius: 16px; }
+.lunch-n { font-size: 24px; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.lunch-none { margin: 0; font-size: 14px; color: var(--r-muted); }
+.hotel .rows { margin-top: 4px; }
+
+/* ---------- More ---------- */
+.panel { display: grid; gap: 12px; }
+.who { gap: 12px; padding-top: 8px; }
+.who p { margin: 0; font-size: 16px; }
+#signOut { width: 100%; }
+.ver { margin: 0; font-size: 14px !important; color: var(--r-muted); }
+
+/* ---------- Log a hand-out (and the batch form) ---------- */
+.ref-info { margin: 0; font-size: 16px; color: var(--r-muted); }
+.ref-info:empty { display: none; }
+.ref-info b { color: var(--r-ink); }
+.ref-info.block { color: var(--r-err); font-weight: 600; }
+.ref-info.replace {
+  padding: 16px; border-radius: 12px; color: var(--r-amber-ink);
+  background: var(--r-amber-wash); border: 1px solid color-mix(in srgb, var(--r-amber-ink) 25%, transparent);
+}
+#batchBox summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 4px 12px; flex-wrap: wrap; min-height: 48px; }
+#batchBox summary::-webkit-details-marker { display: none; }
+#batchBox summary h2::before { content: '+\00a0'; color: var(--r-muted); }
+#batchBox[open] summary h2::before { content: '\2013\00a0'; }
+#batchBox form { margin-top: 16px; }
+main.ref .ref-copybox { min-height: 0; padding: 12px 16px; font-size: 16px; font-variant-numeric: tabular-nums; }
+
+/* ---------- the people list under a phone box (1.20.0; in the page, not over it, since 1.21.0) ---------- */
+.sugg-anchor { position: relative; display: block; min-width: 0; }
+.sugg {
+  margin: 8px 0 0; padding: 0; list-style: none; overflow: hidden; border-radius: 12px;
+  background: var(--r-card); border: 1px solid var(--r-line); color: var(--r-ink); font-weight: 400;
+}
+.sugg-title { margin: 0; padding: 8px 16px 4px; font-size: 14px; font-weight: 700; line-height: 1.35; color: var(--r-amber-ink); }
+.sugg-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 60px; padding: 8px 16px;
+  border-top: 1px solid var(--r-line); cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.sugg > .sugg-row:first-child { border-top: 0; }
+.sugg-row.on, .sugg-row:active { background: var(--r-raised); }
+.sugg-who { display: grid; gap: 2px; min-width: 0; }
+.sugg-name { font-size: 18px; font-weight: 700; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sugg-name .soft { font-weight: 500; color: var(--r-muted); }
+.sugg-tag { font-size: 14px; line-height: 1.3; color: var(--r-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sugg-phone { flex: none; font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sugg mark { background: none; color: var(--r-yellow); padding: 0; border-radius: 0; }
+.sugg-none { margin: 8px 0 0; font-size: 14px; font-weight: 400; color: var(--r-muted); }
+
+/* ---------- short screen (1024x600, and any screen with the keyboard up) ---------- */
+@media (max-height: 700px) {
+  body:not(.locked) > .top { position: static; }
+  html { scroll-padding-top: 16px; }
+}
+
+/* ---------- small phones ---------- */
+@media (max-width: 520px) {
+  .top .btn { padding: 0 12px; font-size: 16px; }
+  .rv-row { grid-template-columns: minmax(0, 1fr); }
+  .give-row { flex-wrap: wrap; }
+  .reward .go:not(.cancel) { width: 100%; }
+  .lunch { flex-wrap: wrap; }
+  .lunch .go { width: 100%; }
+}
+
+/* ---------- motion off ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .scr:not([hidden]) { animation: none; }
+  .go, .big-btn, main.ref input { transition: none; }
+}
